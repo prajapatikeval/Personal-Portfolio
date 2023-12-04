@@ -1,0 +1,309 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+    
+    <h1 class="intro--name"><b>Inbox</b></h1>
+    <section class="inbox-header">
+                <div>
+                    <a class="btn btn-outline-secondary" href="{% url 'home' %}"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a>
+                </div>
+                <div>
+                    <h5>Unread Messages (<span id="unread-badge" style="color:red;"></span>)</h5>
+                </div>
+    </section>
+
+
+    
+
+    <div class="container mt-4">
+        <table class="table table-hover"">
+            <thead>
+                <tr>
+                    <th>Sender Name</th>
+                    <th>Date Sent</th>
+                    <th></th>
+                    {% if inbox %}
+                        <th><button class="btn btn-danger btnn" id="delete-all-button" data-bs-toggle="modal" data-bs-target="#delete_all-{{message.id}} ">
+                                Delete All
+                            </button></th>
+                            
+                            <!-- Comfirmation popup -->
+                            <div class="modal fade" id="delete_all-{{ message.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="exampleModalLabel">Delete</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete all Messages ?</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <a type="button" href="{% url 'inbox' %}" class="btn btn-outline-none" data-bs-dismiss="modal">Cancel</a>
+                                            <form method="post" action="{% url 'delete_all_messages'%}">
+                                                {% csrf_token %}
+                                                <button type="submit"  class="btn btn-outline-danger">Delete All</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    {% else %}
+                    <th></th>
+                    {% endif %}
+
+                    
+                </tr>
+            </thead>
+            <tbody id="message-table-body" class="md-2">
+                {% for message in inbox %}
+                    {% if message.is_read %}
+                        <tr>
+                    {% else %}
+                        <tr class="readed">
+                    {% endif %}
+                    
+                            <td>{{message.name}}</td>
+                            {% if message.created_at|timesince < "7 days" %}
+                                <td>{{message.created_at|timesince}} ago</td>
+                            {% else %}
+                                <td>{{message.created_at|date:"d/M/Y"}}</td>
+                            {% endif %}
+                            
+                            <td>
+                                <a href="#" class="view-message-link" data-message-id="{{ message.id }}" style="text-decoration: none; font-weight: 500;" data-bs-toggle="modal" data-bs-target="#view-{{ message.id }}">View</a>
+
+                                <div class="modal fade view-message-model " id="view-{{ message.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="exampleModalLabel">Message</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <h6>Name : {{message.name}}</h6>
+                                                <h6>Subject : {{message.subject}}</h6>
+                                                <h6>Email : {{message.email}}</h6><hr>
+                                                <h6>Description : {{message.body}}</h6><hr>
+                                                {% if  message.created_at|timesince < "1 minutes" %}
+                                                    <h6>Sented : just now</h6>
+                                                {% elif message.created_at|timesince < "7 days" %}
+                                                    <h6>Sented : {{message.created_at|timesince}} ago</h6>
+                                                {% else %}
+                                                    <h6>Sented : {{message.created_at|date:"d/M/Y"}}</h6>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <a type="button" href="#" class="btn btn-outline-none" data-bs-dismiss="modal">Back</a>
+                                                <button type="submit" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#delete-{{ message.id }}" >Delete</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <!-- Button trigger modal -->
+                            
+                            <td><button class="btn btn-outline-danger delete_single btnn"  data-bs-toggle="modal" data-bs-target="#delete-{{ message.id }}" >
+                                Delete
+                            </button></td>
+                            <!-- Comfirmation popup -->
+                            <div class="modal fade" id="delete-{{ message.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="exampleModalLabel">Delete</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete user : ({{message.name}}) message ??</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <a type="button" href="{% url 'inbox' %}" class="btn btn-outline-none" data-bs-dismiss="modal">Cancel</a>
+                                            <form method="post" id="delete_message" action="{% url 'delete_message' message.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>    
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        
+        {% if not inbox %}
+            <div class="container" id="no-messages-message" >
+                <div style="font-size:50px;">
+                    No messages Available
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{ room_name|json_script:"room-name" }}
+    <script>
+        // Socket Connection
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+        const NotificationSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/notification/'
+            + roomName
+            + '/'
+        );
+        NotificationSocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            const Message = data.count;
+    
+            if (data.type === 'unread_count') {
+                const unreadBadge = document.getElementById('unread-badge');
+                if (unreadBadge) {
+                    unreadBadge.textContent = Message.unread_count;
+                }
+            }
+            if (data.type === 'new_message') {
+                const unreadBadge = document.getElementById('unread-badge');
+                if (unreadBadge) {
+                    unreadBadge.textContent = data.count.unread_count;
+                }
+
+
+                const messageTableBody = document.getElementById('message-table-body');
+                const newRow = document.createElement('tr');
+
+
+                const deleteMessageURL = `{% url 'delete_message' 0 %}`.replace('0', Message.id);
+                const csrf_token = '{% csrf_token %}'
+
+                newRow.innerHTML = `
+                    <td>${Message.name}</td>
+                        {% if  message.created_at|timesince < "1 minutes" %}
+                            <td>just now</td>
+                        {% elif message.created_at|timesince < "7 days" %}
+                            <td>${Message.created_at|timesince} ago</td>
+                        {% else %}
+                            <td>${Message.created_at|date:"d/M/Y"}</>
+                        {% endif %}
+                    
+                    <td>
+                        <a href="#" class="view-message-link" data-message-id="${Message.id}" style="text-decoration: none; font-weight: 500;" data-bs-toggle="modal" data-bs-target="#view-${Message.id}">View</a>
+
+                        <div class="modal fade view-message-model " id="view-${Message.id}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">Message</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <h6>Name : ${Message.name}</h6>
+                                        <h6>Subject : ${Message.subject}</h6>
+                                        <h6>Email : ${Message.email}</h6><hr>
+                                        <h6>Description : ${Message.body}</h6><hr>
+                                        {% if  message.created_at|timesince < "1 minutes" %}
+                                            <h6>Sented : just now</h6>
+                                        {% elif message.created_at|timesince < "7 days" %}
+                                            <h6>Sented : ${Message.created_at|timesince} ago</h6>
+                                        {% else %}
+                                            <h6>Sented : ${Message.created_at|date:"d/M/Y"}</h6>
+                                        {% endif %}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a type="button" href="#" class="btn btn-outline-none" data-bs-dismiss="modal">Back</a>
+                                        <button type="submit" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#delete-${Message.id}" >Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <button class="btn btn-outline-danger delete_single btnn" data-message-id="${Message.id}" data-bs-toggle="modal" data-bs-target="#delete-${Message.id}">
+                            Delete
+                        </button>
+                        <div class="modal fade" id="delete-${Message.id}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">Delete</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p style="font-weight:400;">Are you sure you want to delete user : (${Message.name}) message ??</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a type="button"  class="btn btn-outline-none" data-bs-dismiss="modal">Cancel</a>
+                                        <form method="post" id="delete_message" action="${deleteMessageURL}">
+                                            ${csrf_token}
+                                            <button type="submit" class="btn btn-outline-danger" >Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                newRow.classList.add('readed');
+                messageTableBody.insertBefore(newRow, messageTableBody.firstChild);
+                    
+                const noMessagesMessage = document.querySelector('#no-messages-message');
+                if (noMessagesMessage) {
+                    if (messageTableBody.children.length > 0) {
+                        noMessagesMessage.style.display = 'none'; // Hide the message
+                    } else {
+                        noMessagesMessage.style.display = 'block'; // Show the message
+                    }
+                }
+                const deleteAllButton = document.getElementById('delete-all-button');
+                if (deleteAllButton) {
+                    if (messageTableBody.children.length > 0) {
+                        noMessagesMessage.style.display = 'block'; // Hide the message
+                    }
+                }                
+            
+            }
+        };
+        NotificationSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+        NotificationSocket.onopen = function () {
+            // Send a message to request the unread count when the channel is connected
+            NotificationSocket.send(JSON.stringify({
+                'type': 'unread_count',
+            }));
+        };
+        
+        $(document).ready(function () {
+            $('.view-message-link').click(function (e) {
+                e.preventDefault(); // Prevent the default link behavior
+                console.log("clicked");
+                var messageId = $(this).data('message-id');
+                var url = "{% url 'update_is_read' %}"
+                console.log(url);
+                $.ajax({
+                    type: 'POST',
+                    url: url, // Replace with the correct URL for updating is_read
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        message_id: messageId
+                    },
+                    success: function (data) {
+                        // pass
+                    },
+                    error: function () {
+                        // Handle errors if needed
+                    }
+                });
+            });
+            $('.view-message-model .btn-close, .view-message-model [data-bs-dismiss="modal"]').click(function () {
+                location.reload();
+            });
+        });
+    </script>
+
+{% endblock content %}

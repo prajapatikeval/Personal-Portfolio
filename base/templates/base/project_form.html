@@ -1,0 +1,27 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+    <h1 class="intro--name"><b>Create</b></h1>
+    <div>
+        <div class="inbox-header">
+            <div class="project--back">
+                <a class="btn btn-outline-secondary" href="{% url 'home' %}"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a>
+            </div>
+        </div>
+        <div class="hero">
+            <form method="post" class="project--form--section" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{form.media}}
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label for="exampleInputPassword1"  class="form-label">{{field.label}}</label>
+                        {{field}}
+                    </div>
+                    {% endfor %}
+                <input class="btn btn-primary" type="submit" value="create">
+            </form>
+        </div>
+    </div>
+    <div class="End"></div>
+{% endblock content %}

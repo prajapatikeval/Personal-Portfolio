@@ -1,0 +1,265 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+
+    <style>
+        
+        input[type="search"]::-webkit-search-decoration,
+        input[type="search"]::-webkit-search-cancel-button,
+        input[type="search"]::-webkit-search-results-button,
+        input[type="search"]::-webkit-search-results-decoration { display: none; }
+
+        .search--form{
+            position: relative;
+            margin-top:47px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            transition: all 1s;
+            width: 250px;
+            height: 50px;
+            background: white;
+            box-sizing: border-box;
+            border-radius: 25px;
+            border: 4px solid white;
+            padding: 5px;
+        }
+
+        input{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;;
+            height: 42.5px;
+            line-height: 30px;
+            outline: 0;
+            border: 0;
+            font-size: 1em;
+            border-radius: 20px;
+            padding: 0 20px;
+        }
+
+        .fa-search{
+            box-sizing: border-box;
+            padding: 10px;
+            width: 42.5px;
+            height: 42.5px;
+            position: absolute;
+            top: 0;
+            right: 0;
+            border-radius: 50%;
+            color: #07051a;
+            text-align: center;
+            font-size: 1.2em;
+            background: rgb(122, 121, 121);
+            color: white;
+            transition: all 1s;
+        }
+
+        .search--form:hover,
+        .search--form:valid{
+            width: 250px;
+            cursor: pointer;
+        }
+
+        .search--form:hover input,
+        .search--form:valid input{
+            display: block;
+        }
+
+        .search--form:valid .fa-search{
+            display: none;
+        }
+
+        #clear-btn {
+            display:none;
+            box-sizing: border-box;
+            padding:14px;
+            width: 42.5px;
+            height: 42.5px;
+            position: absolute;
+            top: 0;
+            right: 0;
+            border-radius: 50%;
+            color: #07051a;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        #clear-btn:before {
+            content : '';
+            position: absolute;
+            width:1px;
+            height:15px;
+            background : #999;
+            transform : rotate(45deg);
+        }
+        #clear-btn:after {
+            content : '';   
+            position: absolute;
+            width:1px;
+            height:15px;
+            background : #999;
+            transform : rotate(315deg);
+        }
+        .search--form:valid #clear-btn{
+            display: block;
+        }
+        #no-projects-found{
+            display : none;
+            padding:1px;
+            text-align:center;
+            background : white;
+            border-radius : 5px;
+            border : 1px solid #c1c1c1;
+        }
+    </style>
+
+    <h1 class="intro--name"><b>Projects</b></h1>
+        <section class="inbox-header" style="padding:2em 1em; ">
+            <div class="project--back">
+                <a class="btn btn-outline-secondary" href="{% url 'home' %}"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a>
+            </div>
+            <div>
+                <form action="" class="search--form">
+                    <input type="search" id="myInput" onkeyup="searchProject()" placeholder="Search Project" required >
+                    <i class="fa fa-search"></i>
+                    <a href="javascript:void(0)" id="clear-btn" onclick="clearSearch()"></a>
+                </form>
+            </div>
+
+        </section>
+        <section class="project-section" id="projects">
+            <div class="project--container" >
+                <div class="project--title">
+                    <h3 class="title">My Projects</h3>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'add_project' %}" class="add"><i class="fa fa-plus"> Add</i></a>
+                    {% endif %}
+                </div>
+                <div class="project-wrapper">
+                    {% for project in projects %}
+                        <div class="project--column">
+                            <a href="{% url 'project' project.id %}?from_project_list=1" class="link">
+                            <img class="project--thumbnail" src="{{project.thumbnail}}" alt="Not available">
+                                <div class="project--body">
+                                    <div class="card--title--text" id="card--title"> 
+                                            {{project.title}}
+                                    </div>
+                                    {% if user.is_authenticated %}
+                                        <div class="project--body--edit">
+                                            <a class="btn btn-outline-secondary link" data-bs-toggle="modal" data-bs-target="#edit-{{ project.id }}"><i class="fa fa-edit"></i></a>
+        
+                                            <!-- Edit Confirmation -->
+                                            <div class="modal fade" id="edit-{{ project.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="exampleModalLabel">Edit</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>Are you sure you want to Edit ({{project.title}}) Project?</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <a type="button" class="btn btn-outline-none" data-bs-dismiss="modal">Cancel</a>
+                                                            <a href="{% url 'edit_project' project.id%}" class="btn btn-outline-danger">Edit</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+        
+        
+                                            <a class="btn btn-outline-danger link" data-bs-toggle="modal" data-bs-target="#delete-{{ project.id }}"><i class="fa fa-trash"></i></a>
+                                            
+                                            <!-- Delete Confirmation -->
+                                            <div class="modal fade" id="delete-{{ project.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="exampleModalLabel">Delete</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>Are you sure you want to delete ({{project.title}}) Project?</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <a type="button" class="btn btn-outline-none" data-bs-dismiss="modal">Cancel</a>
+                                                            <form method="post" action="{% url 'delete_project' project.id%}">
+                                                                {% csrf_token %}
+                                                                <button type="submit"  class="btn btn-outline-danger">Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        </div>
+                    {% empty %}
+                        <h3 style="color:red;">No projects Available</h3>
+                    {% endfor %}
+                </div>
+                <div id="no-projects-found">
+                    <h3 style="color: red;">No projects found :( </h3>
+                </div>
+            </div>
+        </section>
+
+    <!--
+    Script Section
+    -->
+    <script>
+    function searchProject() {
+        var input, filter, projects, project, title, i, txtValue;
+        input = document.getElementById("myInput");
+        filter = input.value.toUpperCase();
+        projects = document.querySelectorAll(".project--column");
+        var noProjectsFound = document.getElementById("no-projects-found");
+
+        var found = false;
+
+        for (i = 0; i < projects.length; i++) {
+            project = projects[i];
+            title = project.querySelector("#card--title");
+            txtValue = title.textContent || title.innerText;
+
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    project.style.display = "";
+                    found = true;
+                } else {
+                    project.style.display = "none";
+                }
+            }
+        
+        if (found) {
+            noProjectsFound.style.display = "none";
+        } else {
+            noProjectsFound.style.display = "block";
+        }
+    }
+
+    function clearSearch() {
+        var input = document.getElementById("myInput");
+        input.value = ""; // Clear the search input field
+
+        var projects = document.querySelectorAll(".project--column");
+
+            for (var i = 0; i < projects.length; i++) {
+                projects[i].style.display = ""; // Make all projects visible
+            }
+
+        var noProjectsFound = document.getElementById("no-projects-found");
+        noProjectsFound.style.display = "none"; // Hide the "No projects found" message
+    }
+
+    const clearInput = () => {
+    const input = document.getElementsByTagName("input")[0];
+    input.value = "";
+    }
+    const clearBtn = document.getElementById("clear-btn");
+    clearBtn.addEventListener("click", clearInput);
+    </script>
+
+{% endblock content %}
